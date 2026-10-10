@@ -6,6 +6,7 @@ import type {
   WeeklyOvertimeRule,
   DailyOvertimeRule,
   DoubleTimeRule,
+  ScheduledExcessOvertimeRule,
   WeekendDifferentialRule,
   NightDifferentialRule,
   HolidayPremiumRule,
@@ -30,6 +31,7 @@ export interface CalculatePayParams {
   payRates: PayRate[];
   payPolicy: PayPolicy;
   payPeriod?: PayPeriod;
+  scheduledHoursByDate?: Map<string, number> | Record<string, number>;
   options?: {
     validateEntries?: boolean;
   };
@@ -107,6 +109,9 @@ export function calculatePay(params: CalculatePayParams): CalculationResult {
   const weeklyRule = payPolicy.rules.find((r): r is WeeklyOvertimeRule => r.type === "weekly_overtime");
   const dailyRule = payPolicy.rules.find((r): r is DailyOvertimeRule => r.type === "daily_overtime");
   const doubleTimeRule = payPolicy.rules.find((r): r is DoubleTimeRule => r.type === "double_time");
+  const scheduledExcessRule = payPolicy.rules.find(
+    (r): r is ScheduledExcessOvertimeRule => r.type === "scheduled_excess_overtime"
+  );
   const weekendRule = payPolicy.rules.find((r): r is WeekendDifferentialRule => r.type === "weekend_differential");
   const nightRule = payPolicy.rules.find((r): r is NightDifferentialRule => r.type === "night_differential");
   const holidayRule = payPolicy.rules.find((r): r is HolidayPremiumRule => r.type === "holiday_premium");
@@ -117,6 +122,8 @@ export function calculatePay(params: CalculatePayParams): CalculationResult {
     dailyRule,
     weeklyRule,
     doubleTimeRule,
+    scheduledExcessRule,
+    scheduledHoursByDate: params.scheduledHoursByDate,
   });
 
   const referenceDate = activeIntervals[0]?.workDate || new Date().toISOString().slice(0, 10);
@@ -127,7 +134,7 @@ export function calculatePay(params: CalculatePayParams): CalculationResult {
 
   const combinedOvertimeHours =
     Math.round((classification.totalDailyOvertimeHours + classification.totalWeeklyOvertimeHours) * 10000) / 10000;
-  const otMultiplier = weeklyRule?.multiplier || dailyRule?.multiplier || 1.5;
+  const otMultiplier = scheduledExcessRule?.multiplier || weeklyRule?.multiplier || dailyRule?.multiplier || 1.5;
   const overtimeEarnings = calculateOvertimePay(combinedOvertimeHours, baseRate, otMultiplier);
 
   const dtMultiplier = doubleTimeRule?.multiplier || 2.0;

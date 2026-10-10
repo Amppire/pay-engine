@@ -1,10 +1,16 @@
 import { Money } from "../models/money.ts";
-import type { DailyOvertimeRule, WeeklyOvertimeRule, DoubleTimeRule } from "../models/rules.ts";
+import type {
+  DailyOvertimeRule,
+  WeeklyOvertimeRule,
+  DoubleTimeRule,
+  ScheduledExcessOvertimeRule,
+} from "../models/rules.ts";
 
 export interface DayWorkSummary {
   date: string; // YYYY-MM-DD
   dayOfWeek: number;
   totalHours: number;
+  scheduledHours?: number;
   regularHours: number;
   dailyOvertimeHours: number;
   doubleTimeHours: number;
@@ -21,7 +27,7 @@ export interface OvertimeClassification {
 
 /**
  * Classifies hours by day and week, applying daily overtime, double-time,
- * and weekly overtime with proper non-pyramiding rules.
+ * dynamic schedule-excess overtime, and weekly overtime with proper non-pyramiding rules.
  */
 export function classifyHoursAndOvertime(
   dailyHoursMap: Map<string, { dayOfWeek: number; hours: number }>,
@@ -29,9 +35,11 @@ export function classifyHoursAndOvertime(
     dailyRule?: DailyOvertimeRule;
     weeklyRule?: WeeklyOvertimeRule;
     doubleTimeRule?: DoubleTimeRule;
+    scheduledExcessRule?: ScheduledExcessOvertimeRule;
+    scheduledHoursByDate?: Map<string, number> | Record<string, number>;
   }
 ): OvertimeClassification {
-  const { dailyRule, weeklyRule, doubleTimeRule } = options;
+  const { dailyRule, weeklyRule, doubleTimeRule, scheduledExcessRule, scheduledHoursByDate } = options;
 
   const days: DayWorkSummary[] = [];
   let accumulatedWeeklyStraightHours = 0;
@@ -51,14 +59,30 @@ export function classifyHoursAndOvertime(
     let dayDailyOT = 0;
     let dayDoubleTime = 0;
 
+    // Check if dynamic scheduled hours are configured for this date
+    let schedThreshold: number | undefined;
+    if (scheduledExcessRule && scheduledHoursByDate) {
+      if (scheduledHoursByDate instanceof Map) {
+        schedThreshold = scheduledHoursByDate.get(date);
+      } else {
+        schedThreshold = (scheduledHoursByDate as Record<string, number>)[date];
+      }
+    }
+
     // Apply double-time if configured
     if (doubleTimeRule && hours > doubleTimeRule.thresholdHours) {
       dayDoubleTime = hours - doubleTimeRule.thresholdHours;
       dayRegular = doubleTimeRule.thresholdHours;
     }
 
-    // Apply daily overtime if configured
-    if (dailyRule && dayRegular > dailyRule.thresholdHours) {
+    // Apply dynamic scheduled excess overtime (hours exceeding scheduled amount)
+    if (scheduledExcessRule && schedThreshold !== undefined) {
+      if (dayRegular > schedThreshold) {
+        dayDailyOT = dayRegular - schedThreshold;
+        dayRegular = schedThreshold;
+      }
+    } else if (dailyRule && dayRegular > dailyRule.thresholdHours) {
+      // Apply standard daily overtime if configured
       dayDailyOT = dayRegular - dailyRule.thresholdHours;
       dayRegular = dailyRule.thresholdHours;
     }
@@ -83,6 +107,7 @@ export function classifyHoursAndOvertime(
       date,
       dayOfWeek: entry.dayOfWeek,
       totalHours: hours,
+      scheduledHours: schedThreshold,
       regularHours: dayRegular,
       dailyOvertimeHours: dayDailyOT + dayWeeklyOT,
       doubleTimeHours: dayDoubleTime,
