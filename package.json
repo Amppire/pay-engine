@@ -22,13 +22,25 @@
     "pay",
     "compensation",
     "payroll",
+    "payroll-engine",
+    "pay-calculation",
     "timesheet",
+    "time-tracking",
     "overtime",
     "calculator",
+    "workforce-management",
     "workmetrik"
   ],
   "author": "Amppire",
   "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Amppire/pay-engine.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Amppire/pay-engine/issues"
+  },
+  "homepage": "https://github.com/Amppire/pay-engine#readme",
   "engines": {
     "node": ">=20.0.0"
   },
