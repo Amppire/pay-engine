@@ -1,6 +1,6 @@
 {
   "name": "@workmetrik/pay-engine",
-  "version": "0.1.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Pure, deterministic compensation and pay calculation engine for Workmetrik / TimePay",
   "main": "dist/index.js",
