@@ -12,6 +12,7 @@ interface CalculatePayParams {
   payRates: PayRate[];
   payPolicy: PayPolicy;
   payPeriod?: PayPeriod;
+  scheduledHoursByDate?: Map<string, number> | Record<string, number>;
   options?: {
     validateEntries?: boolean;
   };

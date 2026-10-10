@@ -55,10 +55,18 @@ export interface FixedBonusRule {
   label: string;
 }
 
+export interface ScheduledExcessOvertimeRule {
+  type: "scheduled_excess_overtime";
+  multiplier: number; // e.g. 1.5
+  fallbackThresholdHours?: number; // if unscheduled day, default e.g. 8
+  name?: string;
+}
+
 export type PayRule =
   | WeeklyOvertimeRule
   | DailyOvertimeRule
   | DoubleTimeRule
+  | ScheduledExcessOvertimeRule
   | WeekendDifferentialRule
   | NightDifferentialRule
   | HolidayPremiumRule
