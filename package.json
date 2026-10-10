@@ -1,0 +1,39 @@
+{
+  "name": "@workmetrik/pay-engine",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Pure, deterministic compensation and pay calculation engine for Workmetrik / TimePay",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "node --experimental-strip-types --test tests/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "pay",
+    "compensation",
+    "payroll",
+    "timesheet",
+    "overtime",
+    "calculator",
+    "workmetrik"
+  ],
+  "author": "Amppire",
+  "license": "AGPL-3.0-or-later",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  }
+}
